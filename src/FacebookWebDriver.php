@@ -32,7 +32,7 @@ class FacebookWebDriver extends CoreDriver
     /**
      * Default browser
      */
-    const DEFAULT_BROWSER = 'chrome';
+    public const DEFAULT_BROWSER = 'chrome';
 
     /**
      * Hostname of driver
@@ -229,7 +229,7 @@ class FacebookWebDriver extends CoreDriver
             } else {
                 $chromeOptions[$capability] = $value;
             }
-            $caps->setCapability('chrome.'.$capability, $value);
+            $caps->setCapability('chrome.' . $capability, $value);
         }
 
         $caps->setCapability('chromeOptions', $chromeOptions);
@@ -290,7 +290,7 @@ class FacebookWebDriver extends CoreDriver
         );
 
         if (!$hasSyn) {
-            $synJs = file_get_contents(__DIR__.'/Resources/syn.js');
+            $synJs = file_get_contents(__DIR__ . '/Resources/syn.js');
             $this->webDriver->executeScript($synJs);
         }
 
@@ -318,7 +318,7 @@ class FacebookWebDriver extends CoreDriver
         );
 
         if ($modifier) {
-            $options[$modifier.'Key'] = 1;
+            $options[$modifier . 'Key'] = 1;
         }
 
         return json_encode($options);
@@ -584,7 +584,7 @@ class FacebookWebDriver extends CoreDriver
 
         $elements = array();
         foreach ($nodes as $i => $node) {
-            $elements[] = sprintf('(%s)[%d]', $xpath, $i+1);
+            $elements[] = sprintf('(%s)[%d]', $xpath, $i + 1);
         }
 
         return $elements;
@@ -734,7 +734,9 @@ JS;
             $elementType = strtolower($element->getAttribute('type') ?? '');
 
             if (in_array($elementType, array('submit', 'image', 'button', 'reset'))) {
-                throw new DriverException(sprintf('Impossible to set value an element with XPath "%s" as it is not a select, textarea or textbox', $xpath));
+                $message = 'Impossible to set value an element with XPath "%s" as it is not a select, ';
+                $message = $message . 'textarea or textbox';
+                throw new DriverException(sprintf($message, $xpath));
             }
 
             if ('checkbox' === $elementType) {
@@ -828,7 +830,8 @@ JS;
             return;
         }
 
-        throw new DriverException(sprintf('Impossible to select an option on the element with XPath "%s" as it is not a select or radio input', $xpath));
+        $message = 'Impossible to select an option on the element with XPath "%s" as it is not a select or radio input';
+        throw new DriverException(sprintf($message, $xpath));
     }
 
     /**
@@ -1176,7 +1179,11 @@ XPATH;
     {
         $escapedValue = $this->xpathEscaper->escapeLiteral($value);
         // The value of an option is the normalized version of its text when it has no value attribute
-        $optionQuery = sprintf('.//option[@value = %s or (not(@value) and normalize-space(.) = %s)]', $escapedValue, $escapedValue);
+        $optionQuery = sprintf(
+            './/option[@value = %s or (not(@value) and normalize-space(.) = %s)]',
+            $escapedValue,
+            $escapedValue
+        );
         $option = $this->findElement($optionQuery, $element); // Avoids selecting values from other select boxes
 
         if ($multiple || !$element->getAttribute('multiple')) {
@@ -1224,7 +1231,8 @@ JS;
      */
     private function ensureInputType(RemoteWebElement $element, $xpath, $type, $action)
     {
-        if ('input' !== $element->getTagName()
+        if (
+            'input' !== $element->getTagName()
             || $type !== $element->getAttribute('type')
         ) {
             throw new DriverException(

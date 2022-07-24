@@ -33,7 +33,7 @@
         "php-webdriver/webdriver": "^1.4"
     },
     "require-dev": {
-        "mink/driver-testsuite": "dev-master"
+        "squizlabs/php_codesniffer": "^3.5"
     },
     "autoload": {
         "psr-4": {
