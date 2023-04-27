@@ -32,7 +32,7 @@ class FacebookWebDriver extends CoreDriver
     /**
      * Default browser
      */
-    const DEFAULT_BROWSER = 'chrome';
+    public const DEFAULT_BROWSER = 'chrome';
 
     /**
      * Hostname of driver
@@ -124,7 +124,7 @@ class FacebookWebDriver extends CoreDriver
     {
         // Build base capabilities
         $browserName = $this->getBrowserName();
-        if ($browserName && method_exists(DesiredCapabilities::class, $browserName)) {
+        if ($browserName && method_exists(DesiredCapabilities::class, $browserName ?? '')) {
             /** @var DesiredCapabilities $caps */
             $caps = DesiredCapabilities::$browserName();
         } else {
@@ -229,7 +229,7 @@ class FacebookWebDriver extends CoreDriver
             } else {
                 $chromeOptions[$capability] = $value;
             }
-            $caps->setCapability('chrome.'.$capability, $value);
+            $caps->setCapability('chrome.' . $capability, $value);
         }
 
         $caps->setCapability('chromeOptions', $chromeOptions);
@@ -287,7 +287,7 @@ class FacebookWebDriver extends CoreDriver
         );
 
         if (!$hasSyn) {
-            $synJs = file_get_contents(__DIR__.'/Resources/syn.js');
+            $synJs = file_get_contents(__DIR__ . '/Resources/syn.js');
             $this->webDriver->executeScript($synJs);
         }
 
@@ -304,7 +304,7 @@ class FacebookWebDriver extends CoreDriver
      */
     protected static function charToOptions($char, $modifier = null)
     {
-        $ord = ord($char);
+        $ord = ord($char ?? '');
         if (is_numeric($char)) {
             $ord = $char;
         }
@@ -315,7 +315,7 @@ class FacebookWebDriver extends CoreDriver
         );
 
         if ($modifier) {
-            $options[$modifier.'Key'] = 1;
+            $options[$modifier . 'Key'] = 1;
         }
 
         return json_encode($options);
@@ -352,7 +352,7 @@ class FacebookWebDriver extends CoreDriver
      */
     private function executeJsOnElement(RemoteWebElement $element, $script, $sync = true)
     {
-        $script  = str_replace('{{ELEMENT}}', 'arguments[0]', $script);
+        $script  = str_replace('{{ELEMENT}}', 'arguments[0]', $script ?? '');
         if ($sync) {
             return $this->webDriver->executeScript($script, [$element]);
         }
@@ -525,7 +525,7 @@ class FacebookWebDriver extends CoreDriver
 
         $cookieArray = array(
             'name'   => $name,
-            'value'  => urlencode($value),
+            'value'  => urlencode($value ?? ''),
             'secure' => false, // thanks, chibimagic!
         );
 
@@ -581,7 +581,7 @@ class FacebookWebDriver extends CoreDriver
 
         $elements = array();
         foreach ($nodes as $i => $node) {
-            $elements[] = sprintf('(%s)[%d]', $xpath, $i+1);
+            $elements[] = sprintf('(%s)[%d]', $xpath, $i + 1);
         }
 
         return $elements;
@@ -603,7 +603,7 @@ class FacebookWebDriver extends CoreDriver
     {
         $node = $this->findElement($xpath);
         $text = $node->getText();
-        $text = (string) str_replace(array("\r", "\r\n", "\n"), ' ', $text);
+        $text = (string) str_replace(array("\r", "\r\n", "\n"), ' ', $text ?? '');
 
         return $text;
     }
@@ -640,8 +640,8 @@ class FacebookWebDriver extends CoreDriver
     public function getValue($xpath)
     {
         $element = $this->findElement($xpath);
-        $elementName = strtolower($element->getTagName());
-        $elementType = strtolower($element->getAttribute('type'));
+        $elementName = strtolower($element->getTagName() ?? '');
+        $elementType = strtolower($element->getAttribute('type') ?? '');
 
         // Getting the value of a checkbox returns its value if selected.
         if ('input' === $elementName && 'checkbox' === $elementType) {
@@ -709,7 +709,7 @@ JS;
     public function setValue($xpath, $value)
     {
         $element = $this->findElement($xpath);
-        $elementName = strtolower($element->getTagName());
+        $elementName = strtolower($element->getTagName() ?? '');
 
         if ('select' === $elementName) {
             if (is_array($value)) {
@@ -728,10 +728,12 @@ JS;
         }
 
         if ('input' === $elementName) {
-            $elementType = strtolower($element->getAttribute('type'));
+            $elementType = strtolower($element->getAttribute('type') ?? '');
 
             if (in_array($elementType, array('submit', 'image', 'button', 'reset'))) {
-                throw new DriverException(sprintf('Impossible to set value an element with XPath "%s" as it is not a select, textarea or textbox', $xpath));
+                $message = 'Impossible to set value an element with XPath "%s" as it is not a select, ';
+                $message = $message . 'textarea or textbox';
+                throw new DriverException(sprintf($message, $xpath));
             }
 
             if ('checkbox' === $elementType) {
@@ -811,9 +813,9 @@ JS;
     public function selectOption($xpath, $value, $multiple = false)
     {
         $element = $this->findElement($xpath);
-        $tagName = strtolower($element->getTagName());
+        $tagName = strtolower($element->getTagName() ?? '');
 
-        if ('input' === $tagName && 'radio' === strtolower($element->getAttribute('type'))) {
+        if ('input' === $tagName && 'radio' === strtolower($element->getAttribute('type') ?? '')) {
             $this->selectRadioValue($element, $value);
 
             return;
@@ -825,7 +827,8 @@ JS;
             return;
         }
 
-        throw new DriverException(sprintf('Impossible to select an option on the element with XPath "%s" as it is not a select or radio input', $xpath));
+        $message = 'Impossible to select an option on the element with XPath "%s" as it is not a select or radio input';
+        throw new DriverException(sprintf($message, $xpath));
     }
 
     /**
@@ -1010,8 +1013,8 @@ JS;
      */
     public function executeScript($script)
     {
-        if (preg_match('/^function[\s\(]/', $script)) {
-            $script = preg_replace('/;$/', '', $script);
+        if (preg_match('/^function[\s\(]/', $script ?? '')) {
+            $script = preg_replace('/;$/', '', $script ?? '');
             $script = '(' . $script . ')';
         }
 
@@ -1023,7 +1026,7 @@ JS;
      */
     public function evaluateScript($script)
     {
-        if (0 !== strpos(trim($script), 'return ')) {
+        if (0 !== strpos(trim($script ?? ''), 'return ')) {
             $script = "return {$script};";
         }
 
@@ -1141,7 +1144,7 @@ JS;
 XPATH;
 
                 $xpath = sprintf(
-                    $xpath,
+                    $xpath ?? '',
                     $this->xpathEscaper->escapeLiteral($formId),
                     $this->xpathEscaper->escapeLiteral($name),
                     $this->xpathEscaper->escapeLiteral($value)
@@ -1173,7 +1176,11 @@ XPATH;
     {
         $escapedValue = $this->xpathEscaper->escapeLiteral($value);
         // The value of an option is the normalized version of its text when it has no value attribute
-        $optionQuery = sprintf('.//option[@value = %s or (not(@value) and normalize-space(.) = %s)]', $escapedValue, $escapedValue);
+        $optionQuery = sprintf(
+            './/option[@value = %s or (not(@value) and normalize-space(.) = %s)]',
+            $escapedValue,
+            $escapedValue
+        );
         $option = $this->findElement($optionQuery, $element); // Avoids selecting values from other select boxes
 
         if ($multiple || !$element->getAttribute('multiple')) {
@@ -1221,7 +1228,8 @@ JS;
      */
     private function ensureInputType(RemoteWebElement $element, $xpath, $type, $action)
     {
-        if ('input' !== $element->getTagName()
+        if (
+            'input' !== $element->getTagName()
             || $type !== $element->getAttribute('type')
         ) {
             throw new DriverException(

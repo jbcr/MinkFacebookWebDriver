@@ -47,7 +47,7 @@ class FacebookFactory extends Selenium2Factory
             );
         }
 
-        $capabilities = array_replace($this->guessCapabilities(), $extraCapabilities, $config['capabilities']);
+        $capabilities = array_replace($this->guessCapabilities() ?? [], $extraCapabilities, $config['capabilities']);
 
         // Build driver definition
         return new Definition(FacebookWebDriver::class, [
